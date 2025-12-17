@@ -1,0 +1,138 @@
+{
+  "id": 1765873189704,
+  "idea": "uber for pets",
+  "result_json": {
+    "user_input": "uber for pets",
+    "intent": {
+      "agent_triggers": [
+        "competitor_scout",
+        "trend_scraper"
+      ],
+      "complexity_level": "medium",
+      "industry": "On-demand services",
+      "intent_type": "market_research",
+      "problem_statement": "Lack of convenient and reliable transportation options for pets.",
+      "raw_query": "uber for pets",
+      "target_audience": "Pet owners"
+    },
+    "plan": {
+      "plan_steps": [
+        "Execute TrendScraper"
+      ],
+      "reasoning_notes": "Fallback used due to planner error.",
+      "research_goal": "Fallback research plan.",
+      "selected_agents": [
+        "TrendScraper"
+      ],
+      "suggested_agents": [
+        "TrendScraper"
+      ],
+      "tasks": [
+        {
+          "assigned_agent": "TrendScraper",
+          "description": "Execute TrendScraper",
+          "id": 1,
+          "priority": 1,
+          "title": "TrendScraper Task"
+        }
+      ]
+    },
+    "agent_outputs": [
+      {
+        "success": true,
+        "summary": {
+          "trends": [
+            {
+              "relevance_score": 95,
+              "short_summary": "This is a mock trend returned because the LLM call failed. It represents the growing demand for hyper-personalized experiences.",
+              "supporting_sources": [
+                "https://example.com/mock-trend-source"
+              ],
+              "trend_name": "AI-Driven Personalization (Mock)"
+            },
+            {
+              "relevance_score": 88,
+              "short_summary": "Mock trend indicating a shift towards eco-friendly technology and green energy solutions in the industry.",
+              "supporting_sources": [
+                "https://example.com/green-tech"
+              ],
+              "trend_name": "Sustainable Tech Solutions (Mock)"
+            }
+          ]
+        }
+      }
+    ],
+    "agent_groups": {
+      "Trend Scraper": {
+        "trends": [
+          {
+            "relevance_score": 95,
+            "short_summary": "This is a mock trend returned because the LLM call failed. It represents the growing demand for hyper-personalized experiences.",
+            "supporting_sources": [
+              "https://example.com/mock-trend-source"
+            ],
+            "trend_name": "AI-Driven Personalization (Mock)"
+          },
+          {
+            "relevance_score": 88,
+            "short_summary": "Mock trend indicating a shift towards eco-friendly technology and green energy solutions in the industry.",
+            "supporting_sources": [
+              "https://example.com/green-tech"
+            ],
+            "trend_name": "Sustainable Tech Solutions (Mock)"
+          }
+        ]
+      }
+    },
+    "final_report": "{\"executive_summary\":\"This is a mock summary generated because the LLM call failed. The system encountered an error (e.g., Quota Exceeded) and could not generate a live report.\",\"key_findings\":[\"Mock Finding 1: AI adoption is growing.\",\"Mock Finding 2: Market is competitive.\"],\"market_opportunities\":[{\"opportunity\":\"Niche Targeting\",\"impact\":\"High\",\"evidence\":[\"Competitors focus on broad markets.\"]}],\"risks_and_challenges\":[\"API Quota Limits\",\"Data Accuracy\"],\"strategic_recommendations\":[{\"area\":\"Tech\",\"action\":\"Implement robust error handling\",\"priority\":\"High\",\"owner\":\"Engineering\"}],\"suggested_kpis\":[{\"name\":\"User Retention\",\"target\":\"40%\",\"rationale\":\"Critical for SaaS growth\"}],\"roadmap\":{\"phase_1_launch\":[\"Build MVP\",\"Test with users\"],\"phase_2_growth\":[\"Scale infra\",\"Marketing push\"]}}",
+    "markdown_path": "generated/report.md",
+    "raw_docs_count": 3,
+    "strategy": {
+      "executive_summary": "This is a mock summary generated because the LLM call failed. The system encountered an error (e.g., Quota Exceeded) and could not generate a live report.",
+      "key_findings": [
+        "Mock Finding 1: AI adoption is growing.",
+        "Mock Finding 2: Market is competitive."
+      ],
+      "market_opportunities": [
+        {
+          "evidence": [
+            "Competitors focus on broad markets."
+          ],
+          "impact": "High",
+          "opportunity": "Niche Targeting"
+        }
+      ],
+      "risks_and_challenges": [
+        "API Quota Limits",
+        "Data Accuracy"
+      ],
+      "roadmap": {
+        "phase_1_launch": [
+          "Build MVP",
+          "Test with users"
+        ],
+        "phase_2_growth": [
+          "Scale infra",
+          "Marketing push"
+        ]
+      },
+      "strategic_recommendations": [
+        {
+          "action": "Implement robust error handling",
+          "area": "Tech",
+          "owner": "Engineering",
+          "priority": "High"
+        }
+      ],
+      "suggested_kpis": [
+        {
+          "name": "User Retention",
+          "rationale": "Critical for SaaS growth",
+          "target": "40%"
+        }
+      ]
+    }
+  },
+  "report_md": "{\"executive_summary\":\"This is a mock summary generated because the LLM call failed. The system encountered an error (e.g., Quota Exceeded) and could not generate a live report.\",\"key_findings\":[\"Mock Finding 1: AI adoption is growing.\",\"Mock Finding 2: Market is competitive.\"],\"market_opportunities\":[{\"opportunity\":\"Niche Targeting\",\"impact\":\"High\",\"evidence\":[\"Competitors focus on broad markets.\"]}],\"risks_and_challenges\":[\"API Quota Limits\",\"Data Accuracy\"],\"strategic_recommendations\":[{\"area\":\"Tech\",\"action\":\"Implement robust error handling\",\"priority\":\"High\",\"owner\":\"Engineering\"}],\"suggested_kpis\":[{\"name\":\"User Retention\",\"target\":\"40%\",\"rationale\":\"Critical for SaaS growth\"}],\"roadmap\":{\"phase_1_launch\":[\"Build MVP\",\"Test with users\"],\"phase_2_growth\":[\"Scale infra\",\"Marketing push\"]}}",
+  "created_at": "2025-12-16T08:19:49.705Z"
+}
