@@ -1,4 +1,4 @@
-import { pgTable, serial, text, jsonb, timestamp, boolean, uuid, varchar, vector } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, jsonb, timestamp, boolean, uuid, varchar, vector, integer } from "drizzle-orm/pg-core";
 import z from "zod";
 
 export const chats = pgTable("chats", {
@@ -102,4 +102,15 @@ export const document_chunks = pgTable("document_chunks", {
   metadata: jsonb("metadata"),
   embedding: vector("embedding", { dimensions: 768 }),
   created_at: timestamp("created_at").defaultNow(),
+});
+
+export const research_sessions = pgTable("research_sessions", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().unique(),
+  status: text("status").notNull(), // 'processing', 'completed', 'failed'
+  currentStep: text("current_step"),
+  logs: text("logs").array(),
+  resultId: integer("result_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
 });

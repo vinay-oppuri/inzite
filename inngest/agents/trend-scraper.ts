@@ -1,5 +1,5 @@
 import { inngest } from "../client";
-import { webSearch, generateWithGemini } from "../../lib/agent-utils";
+import { webSearch, generateWithLLM } from "../../lib/agent-utils";
 
 
 export const trendScraperHandler = async ({ event, step }: { event: any, step: any }) => {
@@ -53,11 +53,27 @@ export const trendScraperHandler = async ({ event, step }: { event: any, step: a
     You are an AI research analyst. Your goal is to find trends on: "${topic}"
 
     TREND DATA:
-    ${contextText}
-
-    Analyze the data. Identify 3-5 key trends, needs, or pain points.
-    Return the result as a JSON object matching the schema.
-  `;
+        You are a Senior Market Trend Analyst.
+        Analyze the provided search data to identify impactful trends relevant to the concept: "${topic}".
+        
+        Search Data:
+        ${contextText}
+        
+        Be EXTREMELY DETAILED. Avoid generic statements. Provide concrete examples and evidence.
+        
+        Return a JSON object with this schema:
+        {
+            "trends": [
+                {
+                    "name": "Trend Name",
+                    "description": "Detailed multi-paragraph explanation of the trend, why it matters, and its growth trajectory.",
+                    "impact": "High/Medium/Low",
+                    "evidence": ["Specific example or statistic 1", "Specific example or statistic 2", "..."]
+                }
+            ],
+            "summary": "A comprehensive 300+ word synthesis of where the market is heading over the next 3-5 years."
+        }
+        `;
 
         const schema = {
             type: "OBJECT",
@@ -96,7 +112,7 @@ export const trendScraperHandler = async ({ event, step }: { event: any, step: a
             ]
         };
 
-        return await generateWithGemini(prompt, schema, "GOOGLE_KEY_TREND", fallbackData);
+        return await generateWithLLM(prompt, schema, "GOOGLE_KEY_TREND", fallbackData);
     });
 
     return {

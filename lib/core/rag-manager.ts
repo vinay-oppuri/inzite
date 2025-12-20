@@ -1,38 +1,41 @@
-import { GoogleGenerativeAI, TaskType } from "@google/generative-ai";
 import { db } from "../../db";
 import { document_chunks } from "../../db/schema";
 import { sql } from "drizzle-orm";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+import { LLMClient } from "../llm-client";
 
 export class VectorStoreManager {
+    private client: LLMClient;
+
+    constructor() {
+        this.client = new LLMClient();
+    }
+
     async addDocuments(documents: { content: string; metadata?: Record<string, unknown> }[]) {
         if (!documents.length) return;
 
         const chunks = this.chunkDocuments(documents);
-        const batchSize = 16;
+        const batchSize = 10; // Reduced batch size for local LLM safety
 
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batch = chunks.slice(i, i + batchSize);
             try {
-                const result = await embeddingModel.batchEmbedContents({
-                    requests: batch.map((c) => ({
-                        content: { role: "user", parts: [{ text: c.content }] },
-                        taskType: TaskType.RETRIEVAL_DOCUMENT,
-                    })),
-                });
+                // Generate embeddings in parallel
+                const validEmbeddings: { index: number; values: number[] }[] = [];
 
-                const embeddings = result.embeddings;
-
-                for (let j = 0; j < batch.length; j++) {
-                    if (embeddings[j]) {
-                        await db.insert(document_chunks).values({
-                            content: batch[j].content,
-                            metadata: batch[j].metadata,
-                            embedding: embeddings[j].values,
-                        });
+                await Promise.all(batch.map(async (chunk, batchIdx) => {
+                    const values = await this.client.embed(chunk.content);
+                    if (values && values.length > 0) {
+                        validEmbeddings.push({ index: batchIdx, values });
                     }
+                }));
+
+                for (const em of validEmbeddings) {
+                    const chunk = batch[em.index];
+                    await db.insert(document_chunks).values({
+                        content: chunk.content,
+                        metadata: chunk.metadata,
+                        embedding: em.values,
+                    });
                 }
             } catch (error) {
                 console.error("Embedding batch failed:", error);
@@ -42,12 +45,12 @@ export class VectorStoreManager {
 
     async search(query: string, k: number = 5) {
         try {
-            const result = await embeddingModel.embedContent({
-                content: { role: "user", parts: [{ text: query }] },
-                taskType: TaskType.RETRIEVAL_QUERY,
-            });
+            const embedding = await this.client.embed(query);
 
-            const embedding = result.embedding.values;
+            if (!embedding || embedding.length === 0) {
+                throw new Error("Failed to generate query embedding");
+            }
+
             const embeddingString = `[${embedding.join(",")}]`;
 
             // Use cosine distance (<=>) or L2 distance (<->)
@@ -66,7 +69,7 @@ export class VectorStoreManager {
             return results;
         } catch (error) {
             console.error("Search failed:", error);
-            // Return mock documents if DB fails, so summarizer has something to work with
+            // Return mock documents if DB or Embedding fails
             return [
                 {
                     content: "Mock Context 1: The market for this idea is growing rapidly due to increased digital adoption.",
@@ -86,7 +89,6 @@ export class VectorStoreManager {
         if (!documents.length) return [];
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
             const prompt = `
             You are a reranking expert. Given a query and a list of documents, score each document's relevance to the query on a scale of 0 to 1.
             Return the output as a JSON array of objects, where each object has an "index" (0-based) and a "relevance_score".
@@ -99,13 +101,18 @@ export class VectorStoreManager {
             Output JSON:
             `;
 
-            const result = await model.generateContent({
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: "application/json" }
-            });
+            const result = await this.client.generate(prompt, { json: true, temperature: 0.1 });
+            let scores: { index: number; relevance_score: number }[] = [];
 
-            const responseText = result.response.text();
-            const scores = JSON.parse(responseText) as { index: number; relevance_score: number }[];
+            try {
+                scores = JSON.parse(result.text);
+            } catch {
+                // Try finding JSON array
+                const match = result.text.match(/\[[\s\S]*\]/);
+                if (match) scores = JSON.parse(match[0]);
+            }
+
+            if (!Array.isArray(scores)) return documents; // Fallback
 
             // Sort documents by new score
             const reranked = scores

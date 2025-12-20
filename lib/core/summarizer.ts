@@ -1,63 +1,74 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { LLMClient } from "../llm-client";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_KEY_REPORT || "");
 
 export class Summarizer {
-    private model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    private client: LLMClient;
+
+    constructor() {
+        this.client = new LLMClient();
+    }
 
     async summarize(query: string, contexts: string[]): Promise<unknown> {
         if (!contexts.length) return { error: "No context found to summarize." };
 
         const contextText = contexts.slice(0, 10).join("\n\n");
         const prompt = `
-      You are a strategic startup consultant.
-      Your goal is to synthesize research into a comprehensive strategic report.
-
+      You are an expert Strategic Consultant for high-growth startups.
+      Your goal is to synthesize research into a **DEEP DIVE** strategic report.
+      
       ### User Idea/Query:
       ${query}
 
       ### Research Context:
       ${contextText}
 
-      ### Instructions:
-      - Analyze the provided context deeply.
-      - Generate a structured strategic report in JSON format.
-      - Ensure the output matches the following schema EXACTLY.
+      ### CRITICAL INSTRUCTIONS:
+      - **DEPTH IS MANDATORY**: Do not produce high-level fluff. Provide specific numbers, competitor names, pricing tiers, and technical specs.
+      - **NO TRANSITION WORDS**: Go straight to the point.
+      - **QUANTIFY**: Use % growth, $ market size, user counts wherever possible.
+      - **EVIDENCE**: Backup every opportunity with a specific fact from the context.
 
-      ### JSON Schema:
+      ### JSON Schema (Strictly Adhere):
       {
-        "executive_summary": "High-level summary of the opportunity and strategy (2-3 sentences).",
-        "key_findings": ["List of 3-5 critical insights from the research."],
+        "executive_summary": "A comprehensive executive summary (4-6 sentences) detailing the market state, key gap, and winning strategy.",
+        "key_findings": ["Finding 1 (Detail + Evidence)", "Finding 2...", "Finding 3...", "Finding 4...", "Finding 5...", "Finding 6..."],
         "market_opportunities": [
-            { "opportunity": "Name of opportunity", "impact": "High/Medium/Low", "evidence": ["Supporting fact 1", "Supporting fact 2"] }
+            { "opportunity": "Specific Opportunity Name", "impact": "High/Critical", "evidence": ["Fact 1", "Fact 2", "Fact 3"] },
+            { "opportunity": "...", "impact": "...", "evidence": ["..."] },
+            { "opportunity": "...", "impact": "...", "evidence": ["..."] },
+            { "opportunity": "...", "impact": "...", "evidence": ["..."] }
         ],
-        "risks_and_challenges": ["List of 3-5 potential risks."],
+        "risks_and_challenges": ["Risk 1 (Detail + Mitigation)", "Risk 2...", "Risk 3...", "Risk 4...", "Risk 5..."],
         "strategic_recommendations": [
-            { "area": "Product/Marketing/Tech", "action": "Specific recommendation", "priority": "High/Medium", "owner": "Role responsible" }
+            { "area": "Product", "action": "Specific feature/action", "priority": "High", "owner": "Product Lead" },
+            { "area": "Go-to-Market", "action": "...", "priority": "High", "owner": "CMO" },
+            { "area": "Technology", "action": "...", "priority": "Medium", "owner": "CTO" },
+            { "area": "Operations", "action": "...", "priority": "Medium", "owner": "COO" },
+            { "area": "Sales", "action": "...", "priority": "High", "owner": "Sales Lead" }
         ],
         "suggested_kpis": [
-            { "name": "KPI Name", "target": "Target value", "rationale": "Why this matters" }
+            { "name": "KPI 1", "target": "Specific Number", "rationale": "Why matters" },
+            { "name": "KPI 2", "target": "...", "rationale": "..." },
+            { "name": "KPI 3", "target": "...", "rationale": "..." },
+            { "name": "KPI 4", "target": "...", "rationale": "..." }
         ],
         "roadmap": {
-            "phase_1_launch": ["Step 1", "Step 2"],
-            "phase_2_growth": ["Step 1", "Step 2"]
+            "phase_1_validation": ["Step 1", "Step 2", "Step 3", "Step 4"],
+            "phase_2_launch": ["Step 1", "Step 2", "Step 3", "Step 4"],
+            "phase_3_scale": ["Step 1", "Step 2", "Step 3", "Step 4"]
         }
       }
     `;
 
         try {
-            const result = await this.model.generateContent({
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
-            });
-            const text = result.response.text();
+            const result = await this.client.generate(prompt, { json: true, temperature: 0.2 });
             try {
-                return JSON.parse(text);
+                return JSON.parse(result.text);
             } catch {
-                // Fallback if JSON parsing fails (though responseMimeType should prevent this)
-                return { executive_summary: text, key_findings: [] };
+                // Try extracting JSON if strict parse fails
+                const match = result.text.match(/\{[\s\S]*\}/);
+                if (match) return JSON.parse(match[0]);
+                return { executive_summary: result.text, key_findings: [] };
             }
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);

@@ -1,5 +1,5 @@
 import { inngest } from "../client";
-import { webSearch, searchArxiv, scrapeUrl, generateWithGemini } from "../../lib/agent-utils";
+import { webSearch, searchArxiv, scrapeUrl, generateWithLLM } from "../../lib/agent-utils";
 
 export const techPaperMinerHandler = async ({ event, step }: { event: any, step: any }) => {
     const { topic } = event.data;
@@ -53,32 +53,44 @@ export const techPaperMinerHandler = async ({ event, step }: { event: any, step:
         });
 
         const prompt = `
-        You are an AI research assistant. Your goal is to find key technical papers, articles, and libraries related to:
-        "${topic}"
-
-        RESEARCH DATA:
-        ${contextText}
-
-        Analyze the abstracts, snippets, and scraped text.
-        Select the most important 3-5 papers/articles/libraries.
-        Return the result as a JSON object matching the schema.
-      `;
+            You are a Technical Research Scientist.
+            Analyze the following academic papers and technical content related to: "${topic}".
+            
+            Documents:
+            ${contextText}
+            
+            Provide a TECHNICAL & IN-DEPTH analysis. Focus on architecture, algorithms, and implementation details.
+            
+            Return a JSON object with this schema:
+            {
+                "technologies": [
+                    {
+                        "name": "Technology/Method Name",
+                        "description": "Detailed technical explanation of how it works.",
+                        "maturity": "Experimental/Production-Ready/Deprecated",
+                        "pros": ["Technical advantage 1", "Technical advantage 2"],
+                        "cons": ["Technical limitation 1", "Technical limitation 2"]
+                    }
+                ],
+                "summary": "A comprehensive technical summary (300+ words) synthesizing the state-of-the-art in this field."
+            }
+        `;
 
         const schema = {
             type: "OBJECT",
             properties: {
-                papers: {
+                technologies: {
                     type: "ARRAY",
                     items: {
                         type: "OBJECT",
                         properties: {
-                            title: { type: "STRING", description: "The full title of the paper." },
-                            authors: { type: "ARRAY", items: { type: "STRING" }, description: "List of authors." },
-                            summary: { type: "STRING", description: "Concise summary." },
-                            source_url: { type: "STRING", description: "URL to the paper." },
-                            key_findings: { type: "ARRAY", items: { type: "STRING" }, description: "Key findings." },
+                            name: { type: "STRING", description: "Technology/Method Name" },
+                            description: { type: "STRING", description: "Detailed technical explanation of how it works." },
+                            maturity: { type: "STRING", description: "Experimental/Production-Ready/Deprecated" },
+                            pros: { type: "ARRAY", items: { type: "STRING" }, description: "Technical advantages" },
+                            cons: { type: "ARRAY", items: { type: "STRING" }, description: "Technical limitations" },
                         },
-                        required: ["title", "authors", "summary", "source_url", "key_findings"],
+                        required: ["name", "description", "maturity", "pros", "cons"],
                     },
                 },
             },
@@ -104,7 +116,7 @@ export const techPaperMinerHandler = async ({ event, step }: { event: any, step:
             ]
         };
 
-        return await generateWithGemini(prompt, schema, "GOOGLE_KEY_PAPER", fallbackData);
+        return await generateWithLLM(prompt, schema, "GOOGLE_KEY_PAPER", fallbackData);
     });
 
     return {

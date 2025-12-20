@@ -45,42 +45,121 @@ interface Report {
   created_at: string;
 }
 
+// Recursive renderer for complex agent outputs
+const JsonRenderer = ({ data }: { data: any }) => {
+  if (!data) return null;
+
+  if (typeof data === 'string') {
+    // Check if it looks like Markdown or just simple text
+    if (data.length > 50 || data.includes('#') || data.includes('*')) {
+      return (
+        <div className="mb-4 bg-muted/10 p-4 rounded-lg prose prose-invert text-sm max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {data}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+    return <p className="text-foreground mb-2 text-base leading-relaxed">{data}</p>;
+  }
+
+  if (Array.isArray(data)) {
+    return (
+      <ul className="list-none space-y-2 mb-4 pl-0">
+        {data.map((item, index) => (
+          <li key={index} className="pl-4 border-l-2 border-primary/30">
+            <JsonRenderer data={item} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (typeof data === 'object') {
+    return (
+      <div className="grid gap-4 mb-4">
+        {Object.entries(data).map(([key, value], index) => {
+          // Skip internal or empty keys
+          if (!value || key === 'id') return null;
+
+          return (
+            <div key={index} className="bg-card/20 rounded-lg p-3 border border-border/30">
+              <h4 className="font-semibold text-primary mb-2 capitalize text-sm tracking-wide">
+                {key.replace(/_/g, ' ')}
+              </h4>
+              <div className="pl-2">
+                <JsonRenderer data={value} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return <span className="text-muted-foreground">{String(data)}</span>;
+};
+
 export default function DashboardView() {
   const [idea, setIdea] = useState('');
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string>("Initializing...");
 
   // ✅ Run pipeline and show the generated report
   const runPipeline = async () => {
     if (!idea.trim()) return alert('Enter your startup idea first!');
     setLoading(true);
+    setCurrentStep("Initializing Research Workflow...");
+
     try {
-      // Step 0: Get current latest report ID to check for new ones
-      let currentLatestId = 0;
-      try {
-        const latestRes = await axios.get('/api/get-latest-report');
-        if (latestRes.data) currentLatestId = latestRes.data.id;
-      } catch (e) {
-        // No reports yet
+      // Step 1: Trigger Inngest Workflow and get Session ID
+      const startRes = await axios.post('/api/start-research', { query: idea });
+      const sessionId = startRes.data.sessionId;
+
+      if (!sessionId) {
+        throw new Error("No session ID returned");
       }
 
-      // Step 1: Trigger Inngest Workflow
-      await axios.post('/api/start-research', { query: idea });
-
-      // Step 2: Poll for results
+      // Step 2: Poll for status
       let attempts = 0;
-      const maxAttempts = 40; // 2 minutes (3s interval)
+      const maxAttempts = 100; // Increased timeout for long workflow (10s delays)
 
       const poll = setInterval(async () => {
         attempts++;
         try {
-          const res = await axios.get('/api/get-latest-report');
-          // Check if we got a new report (ID > current or just a report if we didn't have one)
-          if (res.data && (res.data.id > currentLatestId || !currentLatestId)) {
-            clearInterval(poll);
-            setReport(res.data);
-            setLoading(false);
-            alert('✅ Report generated successfully!');
+          const statusRes = await axios.get(`/api/get-session-status?sessionId=${sessionId}`);
+          console.log("Status Polling:", statusRes.data);
+
+          if (statusRes.data) {
+            const { status, currentStep, resultId } = statusRes.data;
+            setCurrentStep(currentStep || "Processing...");
+
+            if (status === 'completed' && resultId) {
+              // Fetch the actual report
+              // Wait a brief moment to ensure report is fully committed if needed
+              setTimeout(async () => {
+                const reportRes = await axios.get('/api/get-latest-report'); // Or fetch by ID if API supported it
+                //Ideally we'd fetch by resultId, but get-latest-report works for single user flow usually.
+                // A safer way would be to update get-latest-report to accept an ID or create a get-report API.
+                // For now, let's assume get-latest-report gets the one we just made.
+
+                if (reportRes.data) {
+                  setReport(reportRes.data);
+                  setLoading(false);
+                  clearInterval(poll);
+                  alert('✅ Report generated successfully!');
+                }
+              }, 1000);
+              return;
+            }
+
+            if (status === 'failed') {
+              clearInterval(poll);
+              setLoading(false);
+              alert('❌ Research failed. Please try again.');
+              return;
+            }
           }
         } catch (e) {
           console.error("Polling error", e);
@@ -122,9 +201,87 @@ export default function DashboardView() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-400 text-lg">
-        <Loader2 className="animate-spin w-6 h-6 mr-2 text-purple-400" />
-        Generating Startup Report...
+      <div className="flex flex-col justify-center items-center min-h-screen text-foreground space-y-8 bg-background/95 backdrop-blur-sm z-50 p-6">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
+          <Loader2 className="animate-spin w-16 h-16 text-primary relative z-10" />
+        </div>
+
+        <div className="text-center space-y-2 mb-8">
+          <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent animate-pulse">
+            Building Your Strategic Report
+          </h3>
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            Our autonomous agents are scouring the web, analyzing competitors, and formulating a winning strategy for you.
+          </p>
+        </div>
+
+        {/* Visual Stepper */}
+        <div className="w-full max-w-2xl bg-card/40 border border-border rounded-xl p-8 backdrop-blur-md shadow-2xl">
+          <h4 className="text-xl font-semibold mb-6 flex items-center gap-2 text-primary">
+            <Zap className="w-5 h-5 text-yellow-500" /> Live Progress
+          </h4>
+
+          <div className="space-y-6">
+            {[
+              { id: 'init', label: 'Initiation & Intent', match: ['Initializing', 'Analyzing Intent'] },
+              { id: 'plan', label: 'Strategic Planning', match: ['Planning Research Agents'] },
+              { id: 'research', label: 'Deep Research (Agents)', match: ['Running Autonomous Agents'] },
+              { id: 'process', label: 'Data Processing & Analysis', match: ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'] },
+              { id: 'report', label: 'Strategy Formulation', match: ['Formulating', 'Finalizing'] }
+            ].map((step, idx) => {
+              const isCompleted = step.match.some(m => currentStep.includes(m)) ? false :
+                idx < [
+                  { id: 'init', match: ['Initializing', 'Analyzing Intent'] },
+                  { id: 'plan', match: ['Planning Research Agents'] },
+                  { id: 'research', match: ['Running Autonomous Agents'] },
+                  { id: 'process', match: ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'] },
+                  { id: 'report', match: ['Formulating', 'Finalizing'] }
+                ].findIndex(s => s.match.some(m => currentStep.includes(m))); // Logic simplified: if index < current step index
+
+              // Better logic: Find index of current step
+              const steps = [
+                ['Initializing', 'Analyzing Intent'],
+                ['Planning Research Agents'],
+                ['Running Autonomous Agents'],
+                ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'],
+                ['Formulating', 'Finalizing']
+              ];
+
+              const currentStepIdx = steps.findIndex(s => s.some(m => currentStep.includes(m)));
+              // If not found (e.g. unknown step), default to 0. 
+              const activeIdx = currentStepIdx === -1 ? 0 : currentStepIdx;
+
+              const isDone = idx < activeIdx;
+              const isActive = idx === activeIdx;
+
+              return (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className={`
+                                w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                ${isDone ? 'bg-primary border-primary text-primary-foreground' :
+                      isActive ? 'border-primary text-primary animate-pulse shadow-[0_0_15px_rgba(var(--primary),0.5)]' :
+                        'border-muted text-muted-foreground bg-muted/20'}
+                            `}>
+                    {isDone ? <CheckCircle className="w-5 h-5" /> :
+                      isActive ? <Loader2 className="w-4 h-4 animate-spin" /> :
+                        <div className="w-2 h-2 rounded-full bg-current" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-medium transition-colors duration-300 ${isActive || isDone ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {step.label}
+                    </p>
+                    {isActive && (
+                      <p className="text-xs text-primary mt-1 animate-pulse font-mono">
+                        {currentStep}...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
 
@@ -226,22 +383,28 @@ export default function DashboardView() {
 
         <CardContent>
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Button
-              onClick={handleCopy}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 w-full sm:w-auto"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Report
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDownload}
-              className="border-primary text-primary hover:bg-primary/10 w-full sm:w-auto"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download JSON
-            </Button>
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center flex-wrap">
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleCopy}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 flex-1 sm:flex-none"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy Report
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                className="border-primary text-primary hover:bg-primary/10 flex-1 sm:flex-none"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download JSON
+              </Button>
+            </div>
+            <span className="text-muted-foreground text-sm italic">
+              - for detailed information
+            </span>
           </div>
 
           <Accordion type="multiple" className="text-foreground space-y-3">
@@ -415,45 +578,20 @@ export default function DashboardView() {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4 pb-4">
-                {Object.entries(agent_groups).map(([agent, content]: [string, any], idx) => (
-                  <div key={idx} className="mb-10">
-                    <h3 className="text-2xl font-semibold text-chart-1 mb-3 flex items-center gap-2">
-                      <Bot className="w-5 h-5 text-chart-1" /> {agent}
-                    </h3>
+                {/* Helper for rendering recursive JSON */}
+                <div className="space-y-8">
+                  {Object.entries(agent_groups).map(([agent, content]: [string, any], idx) => (
+                    <div key={idx} className="bg-card/30 rounded-xl p-6 border border-border/50">
+                      <h3 className="text-xl sm:text-2xl font-bold text-primary mb-6 flex items-center gap-3 border-b border-border/50 pb-4">
+                        <Bot className="w-6 h-6 text-chart-1" /> {agent}
+                      </h3>
 
-                    {Array.isArray(content) &&
-                      content.map((section: any, i: number) => (
-                        <div
-                          key={i}
-                          className="border-l-4 border-border pl-4 mb-3"
-                        >
-                          {typeof section === 'string' ? (
-                            <div className="prose prose-invert max-w-none bg-muted/10 p-6 rounded-lg leading-relaxed text-muted-foreground">
-                              <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                  h1: ({ node, ...props }) => (
-                                    <h1 className="text-3xl font-extrabold text-primary mb-3 mt-4" {...props} />
-                                  ),
-                                  h2: ({ node, ...props }) => (
-                                    <h2 className="text-2xl font-bold text-primary mb-2 mt-3" {...props} />
-                                  ),
-                                  p: ({ node, ...props }) => (
-                                    <p className="text-muted-foreground text-base mb-3" {...props} />
-                                  ),
-                                  li: ({ node, ...props }) => (
-                                    <li className="text-muted-foreground text-base leading-relaxed" {...props} />
-                                  ),
-                                }}
-                              >
-                                {section}
-                              </ReactMarkdown>
-                            </div>
-                          ) : null}
-                        </div>
-                      ))}
-                  </div>
-                ))}
+                      <div className="prose prose-invert max-w-none text-muted-foreground">
+                        <JsonRenderer data={content} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

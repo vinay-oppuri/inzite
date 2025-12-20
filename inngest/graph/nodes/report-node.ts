@@ -59,21 +59,33 @@ export async function reportNode(state: AgentState): Promise<Partial<AgentState>
         });
     }
 
-    // Format agent outputs for the dashboard (keep this logic for dashboard compatibility)
+    // Format agent outputs for the dashboard (PASS RAW OUTPUTS)
     const agent_groups: Record<string, any> = {};
     if (state.agent_outputs) {
         state.agent_outputs.forEach((output: any) => {
+            // Use the agent name if available, or a fallback key
+            // The agentNode usually returns an array of objects which might be the direct result from the LLM
+            // Let's iterate keys to find the agent name if it's structured that way, or just use a generic index if needed.
+            // Based on previous files, agent outputs seem to be mixed into state or returned as array.
+
+            // Actually, let's look at how agentNode constructs the output.
+            // It runs `step.invoke`, which returns the result of the function.
+            // The result of `generateWithLLM` is usually { analysis: ... } or { summary: ... }
+
+            // To ensure we capture everything, we will try to infer a name or just merge them.
+            // However, for the dashboard "Detailed Agent Insights" section, we want clear sections.
+
             if (output.analysis) {
-                agent_groups["Competitor Scout"] = output.analysis;
-            } else if (output.summary) {
-                if (output.summary.trends) {
-                    agent_groups["Trend Scraper"] = output.summary;
-                } else if (output.summary.papers) {
-                    agent_groups["Tech Paper Miner"] = output.summary;
-                }
+                agent_groups["Competitor Scout (Raw)"] = output;
+            } else if (output.trends) {
+                agent_groups["Trend Scraper (Raw)"] = output;
+            } else if (output.papers) {
+                agent_groups["Tech Paper Miner (Raw)"] = output;
+            } else {
+                // Fallback for any other structure
+                const key = `Agent Output ${Object.keys(agent_groups).length + 1}`;
+                agent_groups[key] = output;
             }
-            if (output.trends) agent_groups["Trend Scraper"] = { trends: output.trends };
-            if (output.papers) agent_groups["Tech Paper Miner"] = { papers: output.papers };
         });
     }
 

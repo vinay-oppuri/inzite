@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { parseStringPromise } from "xml2js";
-import { GoogleGenAI, GenerationConfig } from "@google/genai";
+import { LLMClient } from "./llm-client";
 
 export interface SearchResult {
     title: string;
@@ -133,37 +133,40 @@ export async function searchArxiv(query: string, maxResults: number = 3): Promis
     }
 }
 
-export async function generateWithGemini<T>(
+export async function generateWithLLM<T>(
     prompt: string,
-    schema: unknown,
-    apiKeyEnvVar: string,
-    fallbackData: T,
-    modelName: string = "gemini-2.5-flash"
+    schema: any, // kept for compatibility, can be used to validate or inject into prompt
+    keyName_ignored: string, // Kept for signature compatibility but ignored
+    fallbackData: T
 ): Promise<T> {
-    const apiKey = process.env[apiKeyEnvVar];
-    if (!apiKey) {
-        console.warn(`API key ${apiKeyEnvVar} not found. Returning fallback data.`);
-        return fallbackData;
-    }
+    const client = new LLMClient();
 
-    const client = new GoogleGenAI({ apiKey });
+    // Append schema instruction to prompt for Ollama
+    const schemaPrompt = `
+    
+    IMPORTANT: You must return a valid JSON object matching this schema:
+    ${JSON.stringify(schema, null, 2)}
+    
+    Return ONLY the JSON. No preamble or explanation.
+    `;
+
+    const fullPrompt = prompt + schemaPrompt;
 
     try {
-        const result = await client.models.generateContent({
-            model: modelName,
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: schema,
-                temperature: 0.3,
-            } as GenerationConfig,
-        });
+        const result = await client.generate(fullPrompt, { json: true, temperature: 0.2 });
+        const data = extractJson<T>(result.text);
 
-        const parsed = extractJson<T>(result.text || "");
-        return parsed || fallbackData;
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.warn(`⚠️ Gemini generation failed (${modelName}). Returning fallback data.`, errorMessage);
+        if (!data) {
+            throw new Error("Failed to parse JSON from LLM output");
+        }
+        return data as T;
+
+    } catch (error: any) {
+        console.warn(`⚠️ LLM generation failed. Returning fallback data.`, error);
         return fallbackData;
     }
 }
+
+// Deprecated alias for backward compatibility during refactor
+export const generateWithGemini = generateWithLLM;
+

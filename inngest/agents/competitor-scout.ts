@@ -1,5 +1,5 @@
 import { inngest } from "../client";
-import { webSearch, scrapeUrl, generateWithGemini } from "../../lib/agent-utils";
+import { webSearch, scrapeUrl, generateWithLLM } from "../../lib/agent-utils";
 
 
 export const competitorScoutHandler = async ({ event, step }: { event: any, step: any }) => {
@@ -38,14 +38,30 @@ export const competitorScoutHandler = async ({ event, step }: { event: any, step
         });
 
         const prompt = `
-    Analyze the following competitor data for the startup idea: "${description}"
-
-    COMPETITOR DATA:
-    ${contextText}
-
-    Identify the top competitors, their key features, pricing, and why they are similar.
-    Return the result as a JSON object matching the schema.
-  `;
+        You are an expert Competitive Intelligence Analyst.
+        Conduct a DEEP and COMPREHENSIVE analysis of the following competitors based on the provided search results.
+        
+        Search Results:
+        ${JSON.stringify(searchResults, null, 2)}
+        
+        You MUST generate a detailed report. Do not summarize briefly; be verbose and specific.
+        
+        Required Output format (JSON):
+        {
+            "competitors": [
+                {
+                    "name": "Competitor Name",
+                    "url": "Website URL",
+                    "description": "Detailed multi-paragraph description of what they do, their target market, and their unique value proposition.",
+                    "strengths": ["Detailed strength 1 with evidence", "Detailed strength 2 with evidence", ...],
+                    "weaknesses": ["Detailed weakness 1 with evidence", "Detailed weakness 2 with evidence", ...],
+                    "pricing": "Comprehensive pricing structure, including tiers, free plans, and enterprise options if available.",
+                    "features": ["Feature 1: Description of utility", "Feature 2: Description of utility", ...]
+                }
+            ],
+            "market_summary": "A comprehensive 3-5 paragraph overview of the competitive landscape, identifying gaps and saturation points."
+        }
+        `;
 
         const schema = {
             type: "OBJECT",
@@ -99,7 +115,7 @@ export const competitorScoutHandler = async ({ event, step }: { event: any, step
             ]
         };
 
-        return await generateWithGemini(prompt, schema, "GOOGLE_KEY_COMPETITOR", fallbackData);
+        return await generateWithLLM(prompt, schema, "GOOGLE_KEY_COMPETITOR", fallbackData);
     });
 
     return {

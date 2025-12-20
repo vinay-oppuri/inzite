@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { LLMClient } from "../llm-client";
 
 export interface IntentMetadata {
     industry: string;
@@ -36,14 +36,13 @@ export class IntentParser {
     };
 
     private useLlm: boolean;
-    private client: GoogleGenAI | null = null;
+    private client: LLMClient | null = null;
 
     constructor(useLlm: boolean = true) {
         this.useLlm = useLlm;
-        const apiKey = process.env.GOOGLE_API_KEY;
 
-        if (this.useLlm && apiKey) {
-            this.client = new GoogleGenAI({ apiKey: apiKey });
+        if (this.useLlm) {
+            this.client = new LLMClient();
         }
     }
 
@@ -82,16 +81,8 @@ export class IntentParser {
         if (!this.client) throw new Error("Client not initialized");
 
         try {
-            const response = await this.client.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt,
-                config: {
-                    responseMimeType: "application/json",
-                    temperature: 0.1,
-                }
-            });
-
-            const text = response.text;
+            const result = await this.client.generate(prompt, { json: true, temperature: 0.1 });
+            const text = result.text;
             const parsed = this._safeExtractJson(text);
             parsed.raw_query = query;
 
