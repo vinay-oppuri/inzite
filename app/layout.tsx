@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
@@ -7,6 +7,12 @@ import Footer from "@/modules/home/ui/components/footer";
 
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} antialiased bg-linear-to-br from-gray-900 to-black`}
+        className={`${inter.variable} ${outfit.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"

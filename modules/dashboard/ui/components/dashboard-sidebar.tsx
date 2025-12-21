@@ -10,10 +10,10 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart, LayoutGrid, MessageCircle, Users } from "lucide-react";
+import { BarChart, LayoutGrid, MessageCircle, Workflow } from "lucide-react";
 
 const navitems = [
     {
@@ -22,9 +22,9 @@ const navitems = [
         icon: LayoutGrid,
     },
     {
-        href: "/dashboard/agents",
-        title: "Agents",
-        icon: Users,
+        href: "/dashboard/workflow",
+        title: "Workflow",
+        icon: Workflow,
     },
     {
         href: "/dashboard/chats",
@@ -44,13 +44,8 @@ export function DashboardSidebar() {
     return (
         <Sidebar>
             <SidebarHeader>
-                <Link href="/" className="flex items-center justify-center py-8">
-                    <Image
-                        src="/Logo.svg"
-                        alt="Logo"
-                        width={100}
-                        height={100}
-                    />
+                <Link href="/" className="flex items-center justify-center py-6">
+                    <Logo className="w-auto h-8 text-primary" />
                 </Link>
             </SidebarHeader>
 
