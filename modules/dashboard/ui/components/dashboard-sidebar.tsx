@@ -8,12 +8,15 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarFooter,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart, LayoutGrid, MessageCircle, Workflow } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
+import { useEffect, useState } from "react";
 
 const navitems = [
     {
@@ -40,12 +43,16 @@ const navitems = [
 
 export function DashboardSidebar() {
     const pathname = usePathname();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => setMounted(true), []);
+    if (!mounted) return null;
 
     return (
         <Sidebar>
             <SidebarHeader>
                 <Link href="/" className="flex items-center justify-center py-6">
-                    <Logo className="w-auto h-8 text-primary" />
+                    <Logo className="w-auto h-6 text-primary" />
                 </Link>
             </SidebarHeader>
 
@@ -66,7 +73,7 @@ export function DashboardSidebar() {
                                             isActive && "bg-primary/10 text-primary border-primary/20"
                                         )}
                                     >
-                                        <Link href={item.href} className="flex items-center gap-3">
+                                        <Link href={item.href} className="flex items-center gap-3 w-full">
                                             <Icon className="h-5 w-5 shrink-0" />
                                             <span className="text-sm font-medium">{item.title}</span>
                                         </Link>
@@ -77,6 +84,13 @@ export function DashboardSidebar() {
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
+
+            <SidebarFooter className="p-4 border-t border-border/50">
+                <div className="flex items-center justify-between gap-2 px-2">
+                    <span className="text-sm text-muted-foreground font-medium">Theme</span>
+                    <ModeToggle />
+                </div>
+            </SidebarFooter>
         </Sidebar>
     );
 }

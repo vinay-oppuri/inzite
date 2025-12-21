@@ -20,6 +20,7 @@ const NAV_ITEMS = [
 const Header = () => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
@@ -30,12 +31,12 @@ const Header = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
- 
+
   if (!mounted) return null;
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur py-2 md:py-0">
-      <SignInDialog open={open} onOpenChange={setOpen}/>
+      <SignInDialog open={open} onOpenChange={setOpen} />
       <div className="mx-auto max-w-screen-2xl px-4 md:px-8">
 
         {/* Top Bar */}
@@ -79,24 +80,24 @@ const Header = () => {
 
             {/* Mobile Toggle */}
             <button
-              onClick={() => setOpen(!open)}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden inline-flex items-center justify-center rounded-full p-2 hover:bg-muted"
               aria-label="Toggle navigation"
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Nav */}
-        {open && (
+        {mobileMenuOpen && (
           <div className="md:hidden border-t">
             <nav className="flex flex-col px-2 py-4">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setOpen(false)}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={`
                     rounded-lg px-4 py-3 text-base font-medium
                     transition-colors

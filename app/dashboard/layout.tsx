@@ -11,7 +11,7 @@ const Layout = ({ children }: Props) => {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <DashboardSidebar />
-        <div className="flex flex-1 flex-col bg-linear-to-br from-gray-900 to-black">
+        <div className="flex flex-1 flex-col bg-background/90">
           <DashboardNavbar />
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             {children}

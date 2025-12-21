@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -51,31 +51,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-
-  --animate-fade-in: fade-in 0.5s ease-out;
-  --animate-slide-up: slide-up 0.5s ease-out;
-
-  @keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-
-    100% {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slide-up {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 }
 
 @layer base {
@@ -209,11 +184,11 @@
 
 @layer utilities {
   .glass {
-    @apply bg-background/60 backdrop-blur-xl border-t border-white/10 dark:border-white/5;
+    @apply bg-background/80 backdrop-blur-md border-t border-white/10 dark:border-white/5;
   }
 
   .glass-card {
-    @apply bg-card/50 backdrop-blur-lg border border-white/10 dark:border-white/5 shadow-xl;
+    @apply bg-card/80 backdrop-blur-sm border border-white/10 dark:border-white/5 shadow-sm;
   }
 
   .text-gradient {

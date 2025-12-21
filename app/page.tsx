@@ -1,6 +1,8 @@
 import HomeView from "@/modules/home/ui/views/home-view";
 
 const Page = () => {
-  return <HomeView />;
+  return (
+    <HomeView />
+  )
 }
 export default Page;

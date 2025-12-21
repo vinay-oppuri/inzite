@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { db } from "../../../../db";
-import { chats } from "../../../../db/schema";
+import { db } from "../../../db";
+import { chats } from "../../../db/schema";
 import { asc, eq } from "drizzle-orm";
 
-export async function GET(
-    request: Request,
-    { params }: { params: Promise<{ user_id: string }> }
-) {
-    const { user_id } = await params;
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const user_id = searchParams.get('userId');
+
+    if (!user_id) {
+        return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
 
     try {
         const history = await db
