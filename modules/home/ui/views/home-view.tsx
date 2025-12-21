@@ -111,7 +111,7 @@ const HomeView = () => {
                 <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary font-medium">
                   Powerful Features
                 </div>
-                <h2 className="flex md:flex-row flex-col text-2xl font-bold tracking-tighter md:text-5xl">
+                <h2 className="flex md:flex-row flex-col text-2xl font-bold tracking-tighter md:text-5xl gap-2">
                   Everything You Need to <div className="text-primary">Scale</div>
                 </h2>
                 <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed">

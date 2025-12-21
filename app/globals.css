@@ -57,8 +57,8 @@
   :root {
     --radius: 0.75rem;
 
-    /* SKY BLUE & WHITE THEME (Light Mode) */
-    --background: hsl(0 0% 100%);
+    /* Peach/Cream White for better visibility */
+    --background: hsl(30 50% 96%);
     /* Pure White */
     --foreground: hsl(222.2 84% 4.9%);
     /* Dark Slate for contrast */
