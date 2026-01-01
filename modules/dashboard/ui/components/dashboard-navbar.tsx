@@ -10,7 +10,7 @@ const DashboardNavbar = () => {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-50 flex h-18 items-center gap-4 px-4 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 flex h-18 items-center gap-4 px-0 md:px-4 backdrop-blur-lg">
       <Button
         variant="ghost"
         size="icon-lg"

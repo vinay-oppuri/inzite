@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signUpFormSchema } from "@/db/schema";
-import { signUp, signOut, useSession } from "@/lib/auth-client";
+import { signIn, signUp } from "@/lib/auth-client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { OctagonAlertIcon } from "lucide-react";
+import { FaGithub, FaGoogle } from "react-icons/fa";
 
 
 const SignUpView = () => {
@@ -49,9 +50,27 @@ const SignUpView = () => {
         })
     }
 
+    const onSocial = (provider: 'github' | 'google') => {
+        setError(null)
+        setPending(true)
+
+        signIn.social({
+            provider: provider,
+            callbackURL: '/dashboard'
+        }, {
+            onSuccess: () => {
+                setPending(false)
+            },
+            onError: ({ error }) => {
+                setError(error.message)
+                setPending(false)
+            }
+        })
+    }
+
     return (
         <div className="flex flex-col items-center gap-6">
-            <Card className="min-w-md overflow-hidden justify-center border-3 border-border bg-card p-0">
+            <Card className="w-full max-w-md overflow-hidden justify-center border-border bg-card p-0">
                 <CardContent className="grid p-0">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8">
@@ -127,7 +146,7 @@ const SignUpView = () => {
                                     Sign Up
                                 </Button>
 
-                                {/* <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3">
                                     <Button
                                         disabled={pending}
                                         variant="outline"
@@ -148,7 +167,7 @@ const SignUpView = () => {
                                         <FaGithub className="text-lg" />
                                         <span className="hidden sm:inline">GitHub</span>
                                     </Button>
-                                </div> */}
+                                </div>
 
                                 <div className="text-center text-sm">
                                     Already have an account?{" "}

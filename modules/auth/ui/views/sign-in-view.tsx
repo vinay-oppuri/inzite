@@ -50,27 +50,27 @@ export const SignInView = () => {
         })
     }
 
-    // const onSocial = (provider: 'github' | 'google') => {
-    //     setError(null)
-    //     setPending(true)
+    const onSocial = (provider: 'github' | 'google') => {
+        setError(null)
+        setPending(true)
 
-    //     signIn.social({
-    //         provider: provider,
-    //         callbackURL: '/dashboard'
-    //     }, {
-    //         onSuccess: () => {
-    //             setPending(false)
-    //         },
-    //         onError: ({ error }) => {
-    //             setError(error.message)
-    //             setPending(false)
-    //         }
-    //     })
-    // }
+        signIn.social({
+            provider: provider,
+            callbackURL: '/dashboard'
+        }, {
+            onSuccess: () => {
+                setPending(false)
+            },
+            onError: ({ error }) => {
+                setError(error.message)
+                setPending(false)
+            }
+        })
+    }
 
     return (
-        <div className="flex flex-col items-center  gap-6">
-            <Card className="min-w-md overflow-hidden justify-center border-3 border-border bg-card p-0">
+        <div className="flex flex-col items-center gap-6">
+            <Card className="w-full max-w-md overflow-hidden justify-center border-border bg-card p-0">
                 <CardContent className="grid grid-cols-1 p-0">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-6">
@@ -119,7 +119,7 @@ export const SignInView = () => {
                             <Button disabled={pending} type="submit" className="w-full bg-linear-to-r from-primary to-chart-4">
                                 Sign In
                             </Button>
-                            {/* <div className="grid grid-rows-2 gap-4">
+                            <div className="grid grid-rows-2 gap-4">
                                 <Button
                                     disabled={pending}
                                     variant="outline"
@@ -140,7 +140,7 @@ export const SignInView = () => {
                                     <FaGithub className="text-lg text-muted-foreground" />
                                     <span className="text-muted-foreground">Login with GitHub</span>
                                 </Button>
-                            </div> */}
+                            </div>
 
                             <p className="text-center text-sm text-muted-foreground">
                                 Don&apos;t have an account?{' '}

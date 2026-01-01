@@ -30,7 +30,7 @@ const UserProfile = () => {
     await signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/login");
+          router.push("/");
         },
       },
     });

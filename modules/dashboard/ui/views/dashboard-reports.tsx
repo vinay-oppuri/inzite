@@ -123,8 +123,8 @@ export default function ReportsView() {
           </p>
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full md:w-64 flex items-center">
+            <Search className="z-10 absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search ideas..."
               className="pl-8 bg-background/50 backdrop-blur-sm"

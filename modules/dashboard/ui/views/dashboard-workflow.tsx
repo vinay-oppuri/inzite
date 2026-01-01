@@ -81,7 +81,7 @@ const pipelineStages = [
 
 export default function WorkflowView() {
   return (
-    <div className="flex-1 p-6 sm:px-10 sm:py-8 text-foreground space-y-10 max-w-7xl mx-auto w-full">
+    <div className="flex-1 p-2 sm:px-10 sm:py-8 text-foreground space-y-10 max-w-7xl mx-auto w-full">
       <div className="text-center space-y-4 mb-10">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-purple-500 to-pink-500 py-2">
           Agentic Research Workflow

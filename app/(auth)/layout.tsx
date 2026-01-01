@@ -4,7 +4,7 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
     return (
-        <div className="bg-linear-to-br from-gray-900 to-black flex flex-col min-h-svh items-center justify-center p-6 md:p-10">
+        <div className="bg-linear-to-br from-gray-900 to-black flex flex-col min-h-svh items-center justify-center p-4 md:p-10 overflow-x-hidden w-full">
             <div className="w-full max-w-sm md:max-w-3xl">
                 {children}
             </div>

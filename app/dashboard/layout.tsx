@@ -1,6 +1,7 @@
 import DashboardNavbar from '@/modules/dashboard/ui/components/dashboard-navbar';
 import { DashboardSidebar } from '@/modules/dashboard/ui/components/dashboard-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { BottomNav } from '@/components/bottom-nav';
 
 interface Props {
   children: React.ReactNode;
@@ -16,6 +17,9 @@ const Layout = ({ children }: Props) => {
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             {children}
           </main>
+          <div className="md:hidden">
+            <BottomNav />
+          </div>
         </div>
       </div>
     </SidebarProvider>
