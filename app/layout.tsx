@@ -3,7 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
-import Footer from "@/modules/home/ui/components/footer";
+import Footer from "@/modules/home/components/footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,9 +36,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-            {children}
-            <Footer />
-            <Toaster />
+          {children}
+          <Footer />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

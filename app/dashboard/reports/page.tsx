@@ -1,4 +1,4 @@
-import ReportsView from "@/modules/dashboard/ui/views/dashboard-reports"
+import ReportsView from "@/modules/reports/views/reports-view"
 
 const Page = () => {
   return (

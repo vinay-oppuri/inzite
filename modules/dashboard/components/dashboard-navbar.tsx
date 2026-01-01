@@ -4,7 +4,7 @@ import { PanelLeft, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import UserProfile from '@/components/user-profile';
+import UserProfile from '@/modules/auth/components/user-profile';
 
 const DashboardNavbar = () => {
   const { toggleSidebar } = useSidebar();

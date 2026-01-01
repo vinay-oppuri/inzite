@@ -1,23 +1,11 @@
 import { pgTable, serial, text, jsonb, timestamp, boolean, uuid, varchar, vector, integer } from "drizzle-orm/pg-core";
 import z from "zod";
 
-export const chats = pgTable("chats", {
-  id: serial("id").primaryKey(),
-  user_id: text("user_id").notNull(),
-  query: text("query").notNull(),
-  response: text("response").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
 
-export const chat_memory = pgTable("chat_memory", {
-  id: serial("id").primaryKey(),
-  user_id: text("user_id").notNull(),
-  memory: jsonb("memory").default([]),
-  updated_at: timestamp("updated_at").defaultNow(),
-});
 
 export const reports = pgTable("reports", {
-  id: serial("id").primaryKey(),
+  id: integer("id").primaryKey(),
+  userId: text("user_id").notNull(), // Added user_id
   idea: text("idea").notNull(),
   result_json: jsonb("result_json").notNull(),
   report_md: text("report_md").notNull(),
@@ -98,6 +86,7 @@ export const researchReport = pgTable("research_report", {
 
 export const document_chunks = pgTable("document_chunks", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"), // Added optional user_id for now, but should be required ideally. Making it optional to avoid breaking existing data if any, but better to be strict? Let's make it optional for now to be safe with migration if user has data.
   content: text("content").notNull(),
   metadata: jsonb("metadata"),
   embedding: vector("embedding", { dimensions: 768 }),
@@ -113,4 +102,20 @@ export const research_sessions = pgTable("research_sessions", {
   resultId: integer("result_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+});
+
+export const chat_sessions = pgTable("chat_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+});
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  sessionId: uuid("session_id").notNull().references(() => chat_sessions.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), // 'user', 'assistant'
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });

@@ -1,6 +1,6 @@
-import WorkflowView from "@/modules/dashboard/ui/views/dashboard-workflow"
+import WorkflowView from "@/modules/workflow/views/workflow-view"
 
 const Page = () => {
-  return <WorkflowView/>
+  return <WorkflowView />
 }
 export default Page

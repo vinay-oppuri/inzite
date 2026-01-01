@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter, usePathname } from "next/navigation";
-import { LimelightNav } from "./limelight-nav";
-import { Home, Compass, LayoutDashboard, Workflow, BarChartHorizontal } from "lucide-react";
+import { LimelightNav } from "../../../components/ui/limelight-nav";
+import { Home, Compass, LayoutDashboard, Workflow, BarChartHorizontal, MessageCircle } from "lucide-react";
 
 export const BottomNav = () => {
     const router = useRouter();
@@ -17,9 +17,9 @@ export const BottomNav = () => {
         },
         {
             id: 'explore',
-            icon: <Compass />,
+            icon: <MessageCircle />,
             label: 'Explore',
-            onClick: () => router.push('/explore')
+            onClick: () => router.push('/dashboard/chats')
         },
         {
             id: 'workflow',
@@ -44,13 +44,13 @@ export const BottomNav = () => {
     const finalActiveIndex = activeIndex === -1 ? 0 : activeIndex;
 
     return (
-        <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-50">
+        <div className="fixed bottom-2 left-2 z-50">
             <LimelightNav
                 key={pathname}
                 defaultActiveIndex={finalActiveIndex}
                 items={navItems}
-                className="bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl rounded-2xl"
-                iconClassName="text-muted-foreground hover:text-foreground transition-colors"
+                className="bg-black/80 backdrop-blur-md border border-white/10 shadow-2xl rounded-full h-14 px-2"
+                iconClassName="text-white/50 hover:text-white transition-colors"
                 limelightClassName="bg-primary shadow-[0_0_20px_var(--primary)]"
             />
         </div>

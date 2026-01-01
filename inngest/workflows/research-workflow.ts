@@ -17,7 +17,7 @@ export const researchWorkflow = inngest.createFunction(
     { id: "research-workflow" },
     { event: "workflow/research" },
     async ({ event, step }) => {
-        const { query, sessionId } = event.data;
+        const { query, sessionId, userId } = event.data;
         if (!query) return { error: "Query is required" };
 
         const updateStatus = async (status: string, stepName: string) => {
@@ -119,30 +119,99 @@ export const researchWorkflow = inngest.createFunction(
         });
         state = { ...state, ...reportOutput };
 
+        // 9.5 DEBUG STATE
+        await step.run("debug-state", async () => {
+            console.log("🔍 [DEBUG] State Keys before Save:", Object.keys(state));
+            console.log("🔍 [DEBUG] Final Report Present:", !!state.final_report);
+            console.log("🔍 [DEBUG] UserId:", userId);
+            return {};
+        });
+
         // 10. Save to DB
-        await step.run("save-to-db", async () => {
+
+        const saveOutput = await step.run("save-to-db", async () => {
             if (state.final_report) {
                 try {
-                    const [savedReport] = await db.insert(reports).values({
+                    console.log("💾 [SaveToDB] Attempting to save report...", {
                         idea: query,
-                        result_json: state,
+                        userId: userId || "anonymous",
+                        reportLength: state.final_report?.length
+                    });
+
+                    // Sanitize state to ensure valid JSON
+                    const cleanState = JSON.parse(JSON.stringify(state));
+
+                    // 1. Find the lowest available ID (Gap Filling)
+                    // We fetch all IDs to find the first missing integer starting from 0.
+                    // Note: In high traffic, this needs a transaction or lock, but for this use case, it's fine.
+                    const existingReports = await db.select({ id: reports.id }).from(reports);
+                    const existingIds = new Set(existingReports.map(r => r.id));
+
+                    let nextId = 0;
+                    while (existingIds.has(nextId)) {
+                        nextId++;
+                    }
+
+                    console.log(`💾 [SaveToDB] Determined next sequential ID: ${nextId}`);
+
+                    const [savedReport] = await db.insert(reports).values({
+                        id: nextId, // Manually assign the gap-filled ID
+                        idea: query,
+                        userId: userId || "anonymous",
+                        result_json: cleanState,
                         report_md: state.final_report,
                     }).returning({ id: reports.id });
 
-                    if (sessionId && savedReport) {
+                    if (savedReport === undefined) {
+                        throw new Error("Database insert returned no result");
+                    }
+
+                    console.log("✅ [SaveToDB] Report saved with ID:", savedReport.id);
+
+                    if (sessionId) {
                         await db.update(research_sessions)
                             .set({ status: "completed", currentStep: "Done", resultId: savedReport.id })
                             .where(eq(research_sessions.sessionId, sessionId));
                     }
 
+                    return { report_id: String(savedReport.id) };
+
                 } catch (error) {
-                    console.warn("⚠️ Failed to save report to DB:", error);
-                    // Fallback: Save to file system (omitted for brevity in this step, kept mostly same logic)
+                    console.error("🛑 [SaveToDB] CRITICAL FAILURE:", error);
+
                     if (sessionId) {
                         await db.update(research_sessions)
-                            .set({ status: "failed", currentStep: "Failed to save report" })
+                            .set({ status: "failed", currentStep: "Failed to save report: " + (error instanceof Error ? error.message : String(error)) })
                             .where(eq(research_sessions.sessionId, sessionId));
                     }
+                    return {}; // Return empty to allow workflow to finish gracefully (or rethrow if you want retry)
+                }
+            } else {
+                console.warn("⚠️ [SaveToDB] Skipping save - No final report found in state.");
+                return {};
+            }
+        });
+        state = { ...state, ...saveOutput };
+
+        // 11. Ingest into Vector Store (RAG)
+        await step.run("ingest-rag", async () => {
+            if (state.final_report && state.final_report.length > 0) {
+                try {
+                    const { VectorStoreManager } = await import("../../lib/core/rag-manager");
+                    const ragManager = new VectorStoreManager();
+
+                    await ragManager.addDocuments([{
+                        content: state.final_report,
+                        metadata: {
+                            reportId: state.report_id || "unknown",
+                            idea: query,
+                            sessionId: sessionId,
+                            userId: userId
+                        }
+                    }], userId); // Pass userId to addDocuments
+                } catch (error) {
+                    console.warn("⚠️ RAG Ingestion failed:", error);
+                    // Don't fail the workflow for this
                 }
             }
         });

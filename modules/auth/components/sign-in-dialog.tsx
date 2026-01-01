@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { signIn } from "@/lib/auth-client"
 import { FaGoogle, FaGithub } from 'react-icons/fa'
 import Link from 'next/link'
-import ResponsiveDialog from './responsive-dialog'
+import ResponsiveDialog from '../../../components/common/responsive-dialog'
 
 
 interface SignInDialogProps {

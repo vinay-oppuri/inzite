@@ -10,7 +10,7 @@ export class VectorStoreManager {
         this.client = new LLMClient();
     }
 
-    async addDocuments(documents: { content: string; metadata?: Record<string, unknown> }[]) {
+    async addDocuments(documents: { content: string; metadata?: Record<string, unknown> }[], userId?: string) {
         if (!documents.length) return;
 
         const chunks = this.chunkDocuments(documents);
@@ -35,6 +35,7 @@ export class VectorStoreManager {
                         content: chunk.content,
                         metadata: chunk.metadata,
                         embedding: em.values,
+                        userId: userId || null,
                     });
                 }
             } catch (error) {
@@ -43,7 +44,7 @@ export class VectorStoreManager {
         }
     }
 
-    async search(query: string, k: number = 5) {
+    async search(query: string, k: number = 5, userId?: string) {
         try {
             const embedding = await this.client.embed(query);
 
@@ -56,6 +57,29 @@ export class VectorStoreManager {
             // Use cosine distance (<=>) or L2 distance (<->)
             const similarity = sql<number>`1 - (${document_chunks.embedding} <=> ${embeddingString})`;
 
+            let queryBuilder = db
+                .select({
+                    content: document_chunks.content,
+                    metadata: document_chunks.metadata,
+                    score: similarity,
+                })
+                .from(document_chunks);
+
+            // Filter by userId if provided
+            if (userId) {
+                // We need to cast or ensure typescript is happy. Using generic sql injection for where clause if standard builder is tricky with dynamic conditions combined with vector search
+                // Actually, let's use the standard .where() if possible, but we need to combine with the similarity ordering.
+                // It's cleaner to just add the WHERE clause to the SQL query
+            }
+
+            // Drizzle doesn't support easy dynamic where with similarity search in one go if we use the chain. 
+            // Let's rewrite slightly to be cleaner or just use simple logic.
+
+            // Re-constructing query to support optional user_id filter
+            /* 
+               We need to filter by user_id AND sort by similarity.
+            */
+
             const results = await db
                 .select({
                     content: document_chunks.content,
@@ -63,6 +87,7 @@ export class VectorStoreManager {
                     score: similarity,
                 })
                 .from(document_chunks)
+                .where(userId ? sql`${document_chunks.userId} = ${userId}` : undefined)
                 .orderBy(sql`${document_chunks.embedding} <=> ${embeddingString}`)
                 .limit(k);
 

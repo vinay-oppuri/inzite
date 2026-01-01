@@ -1,4 +1,4 @@
-import HomeView from "@/modules/home/ui/views/home-view";
+import HomeView from "@/modules/home/views/home-view";
 
 const Page = () => {
   return (

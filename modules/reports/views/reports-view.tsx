@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -44,8 +44,10 @@ export default function ReportsView() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await axios.get('/api/get-reports');
-        setReports(res.data);
+        const res = await fetch('/api/get-reports');
+        if (!res.ok) throw new Error('Failed to fetch reports');
+        const data = await res.json();
+        setReports(data);
       } catch (err) {
         console.error('❌ Error loading reports:', err);
       } finally {

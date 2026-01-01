@@ -1,7 +1,9 @@
-import DashboardNavbar from '@/modules/dashboard/ui/components/dashboard-navbar';
-import { DashboardSidebar } from '@/modules/dashboard/ui/components/dashboard-sidebar';
+import DashboardNavbar from '@/modules/dashboard/components/dashboard-navbar';
+import { DashboardSidebar } from '@/modules/dashboard/components/dashboard-sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { BottomNav } from '@/components/bottom-nav';
+import { BottomNav } from '@/modules/dashboard/components/bottom-nav';
+
+import { ChatInterface } from "@/components/common/chat-interface";
 
 interface Props {
   children: React.ReactNode;
@@ -22,6 +24,7 @@ const Layout = ({ children }: Props) => {
           </div>
         </div>
       </div>
+      <ChatInterface />
     </SidebarProvider>
   );
 };

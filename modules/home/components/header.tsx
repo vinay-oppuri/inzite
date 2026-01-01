@@ -5,9 +5,9 @@ import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ModeToggle } from '@/components/mode-toggle';
-import { Logo } from '@/components/logo';
-import SignInDialog from '@/components/sign-in-dialog';
+import { ModeToggle } from '@/components/common/mode-toggle';
+import { Logo } from '@/components/common/logo';
+import SignInDialog from '@/modules/auth/components/sign-in-dialog';
 import { useSession } from '@/lib/auth-client';
 
 const NAV_ITEMS = [

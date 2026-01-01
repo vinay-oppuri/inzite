@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+
 import { toast } from 'sonner';
-import { DashboardLoading } from '../components/dashboard-loading';
-import { DashboardEmptyState } from '../components/dashboard-empty-state';
-import { DetailedReport, Report } from '../components/detailed-report';
+import { DashboardLoading } from '../../components/dashboard-loading';
+import { DashboardEmptyState } from '../../components/dashboard-empty-state';
+import { DetailedReport, Report } from '../../components/detailed-report';
 
 export default function DashboardView() {
   const [idea, setIdea] = useState('');
@@ -19,8 +19,16 @@ export default function DashboardView() {
     setCurrentStep("Initializing Research Workflow...");
 
     try {
-      const startRes = await axios.post('/api/start-research', { query: idea });
-      const sessionId = startRes.data.sessionId;
+      const startRes = await fetch('/api/start-research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: idea })
+      });
+
+      if (!startRes.ok) throw new Error("Failed to start research");
+
+      const startData = await startRes.json();
+      const sessionId = startData.sessionId;
 
       if (!sessionId) {
         throw new Error("No session ID returned");
@@ -32,22 +40,27 @@ export default function DashboardView() {
       const poll = setInterval(async () => {
         attempts++;
         try {
-          const statusRes = await axios.get(`/api/get-session-status?sessionId=${sessionId}`);
-          console.log("Status Polling:", statusRes.data);
+          const statusRes = await fetch(`/api/get-session-status?sessionId=${sessionId}`);
+          if (!statusRes.ok) return;
+          const statusData = await statusRes.json();
+          console.log("Status Polling:", statusData);
 
-          if (statusRes.data) {
-            const { status, currentStep, resultId } = statusRes.data;
+          if (statusData) {
+            const { status, currentStep, resultId } = statusData;
             setCurrentStep(currentStep || "Processing...");
 
             if (status === 'completed' && resultId) {
               setTimeout(async () => {
-                const reportRes = await axios.get('/api/get-latest-report');
+                const reportRes = await fetch('/api/get-latest-report');
 
-                if (reportRes.data) {
-                  setReport(reportRes.data);
-                  setLoading(false);
-                  clearInterval(poll);
-                  toast.success('Report generated successfully!');
+                if (reportRes.ok) {
+                  const reportData = await reportRes.json();
+                  if (reportData) {
+                    setReport(reportData);
+                    setLoading(false);
+                    clearInterval(poll);
+                    toast.success('Report generated successfully!');
+                  }
                 }
               }, 1000);
               return;

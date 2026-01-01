@@ -11,11 +11,11 @@ import {
     SidebarFooter,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/common/logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart, LayoutGrid, MessageCircle, Workflow } from "lucide-react";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/common/mode-toggle";
 import { useEffect, useState } from "react";
 
 const navitems = [

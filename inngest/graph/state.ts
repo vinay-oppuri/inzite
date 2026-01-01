@@ -11,4 +11,5 @@ export interface AgentState {
     agent_groups?: Record<string, any>;
     raw_docs_count?: number;
     markdown_path?: string;
+    report_id?: string;
 }
