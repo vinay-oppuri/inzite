@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import Footer from "@/modules/home/components/footer";
+import Providers from "@/components/common/providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,9 +37,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Footer />
-          <Toaster />
+          <Providers>
+            {children}
+            {/* <Footer /> */}
+            <Toaster richColors closeButton position="bottom-right" />
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

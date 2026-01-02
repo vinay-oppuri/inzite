@@ -49,8 +49,8 @@ export const BottomNav = () => {
                 key={pathname}
                 defaultActiveIndex={finalActiveIndex}
                 items={navItems}
-                className="bg-black/80 backdrop-blur-md border border-white/10 shadow-2xl rounded-full h-14 px-2"
-                iconClassName="text-white/50 hover:text-white transition-colors"
+                className="backdrop-blur-md border border-foreground/10 shadow-2xl rounded-full! h-14 px-3"
+                iconClassName="text-foreground/50 hover:text-foreground transition-colors"
                 limelightClassName="bg-primary shadow-[0_0_20px_var(--primary)]"
             />
         </div>

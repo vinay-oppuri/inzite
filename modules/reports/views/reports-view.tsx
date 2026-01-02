@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
+import { motion } from "motion/react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -21,6 +21,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import LoadingState from '@/components/common/loading-state';
+import ErrorState from '@/components/common/error-state';
 
 interface Report {
   id: number;
@@ -34,6 +36,22 @@ export default function ReportsView() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Report | null>(null);
   const [search, setSearch] = useState('');
+
+  // Animation Variants
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   // ✅ Search filtering
   const filteredReports = !search.trim()
@@ -114,7 +132,12 @@ export default function ReportsView() {
   }
 
   return (
-    <div className="flex-1 space-y-8 p-4 md:p-8 pt-6 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="flex-1 space-y-8 p-2 md:p-8 pt-6 max-w-7xl mx-auto w-full"
+    >
 
       {/* Header controls */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-end justify-between">
@@ -160,36 +183,37 @@ export default function ReportsView() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredReports.map((r) => (
-            <Card
-              key={r.id}
-              className="group flex flex-col glass-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer overflow-hidden py-4"
-              onClick={() => setSelected(r)}
-            >
-              <CardHeader className="pb-3 space-y-3">
-                <div className="flex justify-between items-start w-full">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary transition-transform group-hover:scale-105">
-                    <FileText className="w-5 h-5" />
+            <motion.div key={r.id} variants={item}>
+              <Card
+                className="group flex flex-col glass-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer overflow-hidden py-4 h-full"
+                onClick={() => setSelected(r)}
+              >
+                <CardHeader className="pb-3 space-y-3">
+                  <div className="flex justify-between items-start w-full">
+                    <div className="p-2 bg-primary/10 rounded-lg text-primary transition-transform group-hover:scale-105">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                      #{r.id}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-                    #{r.id}
-                  </span>
-                </div>
-                <CardTitle className="leading-snug text-lg font-bold line-clamp-2 group-hover:text-primary transition-colors">
-                  {r.idea}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="mt-auto pt-0">
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/40">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </span>
-                  <span className="font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                    View Report
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+                  <CardTitle className="leading-snug text-lg font-bold line-clamp-2 group-hover:text-primary transition-colors">
+                    {r.idea}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="mt-auto pt-0">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/40">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </span>
+                    <span className="font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                      View Report
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       )}
@@ -223,6 +247,25 @@ export default function ReportsView() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
+}
+
+
+export const ReportsLoadingState = () => {
+  return (
+    <LoadingState
+      title="Loading Reports"
+      description="Please wait while we load your reports."
+    />
+  )
+}
+
+export const ReportsErrorState = () => {
+  return (
+    <ErrorState
+      title="Error Loading Reports"
+      description="Please try again later."
+    />
+  )
 }

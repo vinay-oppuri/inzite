@@ -1,86 +1,81 @@
 import {
-    Zap,
     Loader2,
-    CheckCircle,
+    CheckCircle2,
+    Circle,
+    BrainCircuit
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { motion } from "motion/react";
 
 interface DashboardLoadingProps {
     currentStep: string;
 }
 
 export const DashboardLoading = ({ currentStep }: DashboardLoadingProps) => {
+    const steps = [
+        { id: 'init', label: 'Initiation', match: ['Initializing', 'Analyzing Intent'] },
+        { id: 'plan', label: 'Planning', match: ['Planning Research Agents'] },
+        { id: 'research', label: 'Deep Research', match: ['Running Autonomous Agents'] },
+        { id: 'process', label: 'Analysis', match: ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'] },
+        { id: 'report', label: 'Finalizing', match: ['Formulating', 'Finalizing'] }
+    ];
+
+    const currentStepIdx = steps.findIndex(s => s.match.some(m => currentStep.includes(m)));
+    const activeIdx = currentStepIdx === -1 ? 0 : currentStepIdx;
+    const progress = Math.min((activeIdx / (steps.length - 1)) * 100, 95);
+
     return (
-        <div className="flex flex-col justify-center items-center min-h-screen text-foreground space-y-8 bg-background/80 backdrop-blur-xl z-50 p-6 fixed inset-0">
-            <div className="relative mb-8">
-                <div className="absolute inset-0 bg-primary/10 rounded-full"></div>
-                <div className="relative bg-background/90 rounded-full p-6 ring-1 ring-white/10 shadow-sm">
-                    <Loader2 className="w-16 h-16 text-primary animate-spin" /> {/* Keep simple spin, it's standard UX */}
+        <div className="w-full max-w-md mx-auto animate-in slide-in-from-right-8 duration-700 fade-in bg-background/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 shadow-xl">
+            <div className="space-y-6">
+                <div className="flex items-center gap-4 mb-2">
+                    <div className="p-3 bg-primary/10 rounded-xl animate-pulse">
+                        <BrainCircuit className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-foreground">AI Research Agent</h3>
+                        <p className="text-sm text-muted-foreground">Building your strategic report...</p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="text-center space-y-4 mb-8">
-                <h3 className="text-3xl font-bold text-primary tracking-tight">
-                    Building Your Strategic Report
-                </h3>
-                <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-                    Our autonomous agents are scouring the web, analyzing competitors, and formulating a winning strategy for you.
-                </p>
-            </div>
+                <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                        <span>Progress</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                </div>
 
-            {/* Visual Stepper */}
-            <div className="w-full max-w-2xl glass-card rounded-2xl p-8 shadow-2xl border-white/5">
-                <h4 className="text-xl font-semibold mb-8 flex items-center gap-3 text-primary border-b border-border/50 pb-4">
-                    <Zap className="w-6 h-6 text-yellow-500 fill-yellow-500/20" /> Live Agent Progress
-                </h4>
-
-                <div className="space-y-6">
-                    {[
-                        { id: 'init', label: 'Initiation & Intent', match: ['Initializing', 'Analyzing Intent'] },
-                        { id: 'plan', label: 'Strategic Planning', match: ['Planning Research Agents'] },
-                        { id: 'research', label: 'Deep Research (Agents)', match: ['Running Autonomous Agents'] },
-                        { id: 'process', label: 'Data Processing & Analysis', match: ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'] },
-                        { id: 'report', label: 'Strategy Formulation', match: ['Formulating', 'Finalizing'] }
-                    ].map((step, idx) => {
-                        // Existing logic for step active/done determination
-                        const steps = [
-                            ['Initializing', 'Analyzing Intent'],
-                            ['Planning Research Agents'],
-                            ['Running Autonomous Agents'],
-                            ['Ingesting', 'Retrieving', 'Reranking', 'Summarizing'],
-                            ['Formulating', 'Finalizing']
-                        ];
-
-                        const currentStepIdx = steps.findIndex(s => s.some(m => currentStep.includes(m)));
-                        const activeIdx = currentStepIdx === -1 ? 0 : currentStepIdx;
-
+                <div className="space-y-3 pt-2">
+                    {steps.map((step, idx) => {
                         const isDone = idx < activeIdx;
                         const isActive = idx === activeIdx;
 
                         return (
-                            <div key={idx} className="flex items-center gap-4 group">
-                                <div className={`
-                              w-8 h-8 rounded-full flex items-center justify-center border transition-colors
-                              ${isDone ? 'bg-primary border-primary text-primary-foreground' :
-                                        isActive ? 'border-primary text-primary' :
-                                            'border-border text-muted-foreground bg-muted/20'}
-                          `}>
-                                    {isDone ? <CheckCircle className="w-5 h-5" /> :
-                                        isActive ? <Loader2 className="w-4 h-4 animate-spin" /> :
-                                            <div className="w-2 h-2 rounded-full bg-current" />}
-                                </div>
-                                <div className="flex-1">
-                                    <p className={`font-medium transition-colors text-lg ${isActive || isDone ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                        {step.label}
-                                    </p>
-                                    {isActive && (
-                                        <p className="text-sm text-primary mt-1 font-mono tracking-wide">
-                                            {currentStep}...
-                                        </p>
-                                    )}
-                                </div>
+                            <div key={idx} className={`flex items-center gap-3 text-sm transition-colors duration-300 ${isActive || isDone ? 'opacity-100' : 'opacity-40'}`}>
+                                {isDone ? (
+                                    <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                                ) : isActive ? (
+                                    <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
+                                ) : (
+                                    <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+                                )}
+                                <span className={`font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                                    {step.label}
+                                </span>
+                                {isActive && (
+                                    <span className="ml-auto text-xs text-primary/80 animate-pulse">
+                                        Processing...
+                                    </span>
+                                )}
                             </div>
                         );
                     })}
+                </div>
+
+                <div className="pt-4 border-t border-border/50">
+                    <p className="text-xs text-center text-muted-foreground animate-pulse">
+                        {currentStep}...
+                    </p>
                 </div>
             </div>
         </div>

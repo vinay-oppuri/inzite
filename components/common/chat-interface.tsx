@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2, Sparkles, User, Bot } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
 
 interface Message {
     role: "user" | "assistant";
@@ -88,7 +89,7 @@ export function ChatInterface() {
                             className={cn(
                                 "fixed z-50 bg-background border shadow-2xl flex flex-col overflow-hidden ring-1 ring-border/50",
                                 // Desktop positioning
-                                "md:bottom-24 md:right-6 md:w-[400px] md:h-[600px] md:rounded-xl",
+                                "md:bottom-24 md:right-6 md:left-auto md:w-[400px] md:h-[600px] md:rounded-xl",
                                 // Mobile positioning (full width sheet style)
                                 "bottom-0 left-0 right-0 top-auto h-[80vh] w-full rounded-t-3xl border-b-0"
                             )}
@@ -157,20 +158,19 @@ export function ChatInterface() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-4 bg-background border-t pb-8 md:pb-4">
+                            <div className="p-4 bg-background border-t pb- md:pb-4">
                                 <form onSubmit={handleSubmit} className="relative">
-                                    <Textarea
+                                    <Input
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
                                         placeholder="Ask about your reports..."
-                                        className="pr-12 resize-none max-h-[100px] min-h-[50px] py-4 rounded-xl shadow-sm focus-visible:ring-primary/20"
-                                        rows={1}
+                                        className="pr-12 h-12 resize-none rounded-xl shadow-sm text-xs md:text-sm focus-visible:ring-primary/20"
                                     />
                                     <Button
                                         type="submit"
                                         size="icon"
-                                        className="absolute right-2 top-2 h-8 w-8 rounded-lg"
+                                        className="absolute right-16 md:right-2 top-2 h-8 w-8 rounded-lg"
                                         disabled={isLoading || !input.trim()}
                                     >
                                         <Send className="w-4 h-4" />

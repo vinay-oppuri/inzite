@@ -11,6 +11,7 @@ import {
     TrendingUp,
     Lightbulb,
 } from 'lucide-react';
+import { motion } from "motion/react";
 import {
     Card,
     CardContent,
@@ -63,7 +64,12 @@ export const DetailedReport = ({ report }: DetailedReportProps) => {
     const { strategy, agent_groups, raw_docs_count } = data;
 
     return (
-        <div className="flex-1 p-2 sm:px-10 sm:py-8 text-foreground space-y-8 max-w-7xl mx-auto w-full">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex-1 p-0 sm:px-10 sm:py-8 text-foreground space-y-8 max-w-7xl mx-auto w-full"
+        >
             <Card className="glass-card rounded-3xl border-border/50 shadow-2xl overflow-hidden pt-8">
                 <CardHeader className="border-b border-border/50 bg-secondary/10 pb-8 px-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -323,6 +329,6 @@ export const DetailedReport = ({ report }: DetailedReportProps) => {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </motion.div>
     );
 };

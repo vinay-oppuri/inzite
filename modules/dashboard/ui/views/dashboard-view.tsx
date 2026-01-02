@@ -6,6 +6,9 @@ import { toast } from 'sonner';
 import { DashboardLoading } from '../../components/dashboard-loading';
 import { DashboardEmptyState } from '../../components/dashboard-empty-state';
 import { DetailedReport, Report } from '../../components/detailed-report';
+import { motion, AnimatePresence } from "motion/react";
+import LoadingState from '@/components/common/loading-state';
+import ErrorState from '@/components/common/error-state';
 
 export default function DashboardView() {
   const [idea, setIdea] = useState('');
@@ -91,20 +94,49 @@ export default function DashboardView() {
     }
   };
 
-  if (loading) {
-    return <DashboardLoading currentStep={currentStep} />;
+  if (report) {
+    return <DetailedReport report={report} />;
   }
 
-  if (!report) {
-    return (
+  return (
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-[calc(100vh-4rem)] gap-8 p-4 md:p-8 max-w-[1600px] mx-auto overflow-hidden">
       <DashboardEmptyState
         idea={idea}
         setIdea={setIdea}
         runPipeline={runPipeline}
         loading={loading}
       />
-    );
-  }
 
-  return <DetailedReport report={report} />;
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, x: 50, width: 0 }}
+            animate={{ opacity: 1, x: 0, width: "auto" }}
+            exit={{ opacity: 0, x: 20, width: 0 }}
+            className="shrink-0 w-full max-w-md"
+          >
+            <DashboardLoading currentStep={currentStep} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export const DashboardLoadingState = () => {
+  return (
+    <LoadingState
+      title="Loading Dashboard"
+      description="Please wait while we load your dashboard."
+    />
+  )
+}
+
+export const DashboardErrorState = () => {
+  return (
+    <ErrorState
+      title="Error Loading Dashboard"
+      description="Please try again later."
+    />
+  )
 }
